@@ -1,60 +1,34 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport"
-        content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Word-a-Roo v1.0 Classic</title>
-  <link rel="icon" type="image/png" href="favicon.ico" />
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Word-a-Roo</title>
 
-  <!-- Styles -->
-  <link rel="stylesheet" href="styles/main.css" />
-
-  <!-- Scripts -->
-  <script type="module" src="scripts/sound.js"></script>
-  <script type="module" src="scripts/main.js"></script>
+  <link rel="stylesheet" href="./styles/main.css">
+  <script type="module" src="./scripts/main.js"></script>
 </head>
 <body>
-  <!-- Splash Screen -->
+  <!-- Splash -->
   <section id="splash">
-    <img id="splashImg" src="assets/img/splash.png" alt="Word-a-Roo Splash" />
-    <button id="btnStart" class="startBtn">▶ Start</button>
-    <div id="version">Word-a-Roo v1.0 Classic</div>
+    <img src="./assets/img/splash.png" alt="Splash" class="bg">
+    <button id="btnStart">Start</button>
   </section>
 
-  <!-- Game Container -->
-  <main id="gameWrap" class="hide">
-    <header>
-      <div class="chip">⚙ Settings</div>
-      <div class="chip">⭐ Score <span id="score">0</span></div>
-    </header>
-
-    <section id="wordBar">
-      <div id="wordList"></div>
-    </section>
-
-    <section id="gridArea">
-      <div id="grid"></div>
-    </section>
-
-    <!-- Floating hint buttons -->
-    <div id="hintPanel">
-      <button id="hintBtn" class="roundBtn" title="Hint">💡</button>
-      <button id="superHintBtn" class="roundBtn hide" title="Super Hint">⚡</button>
+  <!-- Mode Picker -->
+  <section id="modePicker" class="hidden picker">
+    <div class="pickerCard">
+      <h2>Choose a Mode</h2>
+      <p class="sub">Try Word-a-Roo Classic</p>
+      <div class="stack">
+        <button class="mBtn" id="chooseClassic">Classic</button>
+        <button class="ghostBtn" id="cancelPicker">Back</button>
+      </div>
     </div>
+    <img src="./assets/img/modepicker.png" alt="Mode Badge" class="pickerBadge">
+  </section>
 
-    <footer id="footerReserve">
-      <!-- reserved space for future ads / power-ups -->
-    </footer>
-  </main>
-
-  <!-- Level Complete Modal -->
-  <div id="modal" class="hide">
-    <div class="panel">
-      <h2>Level Complete!</h2>
-      <div id="stats"></div>
-      <button id="nextBtn" class="startBtn">Next Level</button>
-    </div>
-  </div>
+  <!-- Game Stage -->
+  <main id="stage"></main>
 </body>
 </html>
