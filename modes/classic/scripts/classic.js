@@ -67,7 +67,7 @@ export function start(){
         <div id="wordBar">
           <div id="wordList" class="words"></div>
         </div>
-        <div id="msg"></div>
+        <div id="msg">&nbsp;</div>
         <div class="boardWrap">
           <svg id="pills" class="pills"></svg>
           <div id="grid" class="grid"></div>
@@ -95,48 +95,122 @@ export function start(){
 
   hookInput(gridEl);
   animateLava();
+  resizePillsToGrid();
+  window.addEventListener('resize', resizePillsToGrid);
 }
 
-/* ---------------- INPUT ---------------- */
-function hookInput(gridEl){
-  let activePointer=null;
-alert('loaded');
-  const cellElById=id=>gridEl.querySelector(`.cell[data-idx="${id}"]`);
-  const updateSel=()=>{
-    gridEl.querySelectorAll('.cell.sel').forEach(c=>c.classList.remove('sel'));
-    for(const id of S.selPath) cellElById(id)?.classList.add('sel');
-  };
+function resizePillsToGrid() {
+  const grid = document.getElementById('grid');
+  const svg = document.getElementById('pills');
+  if (!grid || !svg) return;
 
-  gridEl.addEventListener('pointerdown',e=>{
-    const el=e.target.closest('.cell'); if(!el) return;
-    activePointer=e.pointerId;
-    gridEl.setPointerCapture(e.pointerId);
-    S.dragging=true;
-    S.selPath=[+el.dataset.idx];
+  const rect = grid.getBoundingClientRect();
+
+  // Apply exact pixel dimensions
+  svg.style.width = `${rect.width}px`;
+  svg.style.height = `${rect.height}px`;
+
+  // Match grid's position inside boardWrap
+  svg.style.left = `${grid.offsetLeft}px`;
+  svg.style.top = `${grid.offsetTop}px`;
+
+  svg.setAttribute('width', rect.width);
+  svg.setAttribute('height', rect.height);
+}
+
+
+/* ---------------- INPUT ---------------- */
+const COLORS = [
+  '#9adafe', // blue
+  '#ffc85b', // yellow
+  '#9fff9f', // green
+  '#ff9fe5', // pink
+  '#a29fff', // violet
+];
+let nextColorIndex = 0;
+function nextPillColor() {
+  const color = COLORS[nextColorIndex];
+  nextColorIndex = (nextColorIndex + 1) % COLORS.length;
+  return color;
+}
+
+function hookInput(gridEl) {
+  console.log("hookInput active");
+
+  const cellElById = id => gridEl.querySelector(`.cell[data-idx="${id}"]`);
+  const updateSel = () => {
+    gridEl.querySelectorAll(".cell.sel").forEach(c => c.classList.remove("sel"));
+    for (const id of S.selPath) cellElById(id)?.classList.add("sel");
+  };
+  
+
+  let activePointer = null;
+
+  // gridEl.addEventListener("pointerdown", e => {
+  //   const el = e.target.closest(".cell");
+  //   if (!el) return;
+  //   S.dragging = true;
+  //   activePointer = e.pointerId;
+  //   S.selPath = [+el.dataset.idx];
+  //   gridEl.setPointerCapture(activePointer); // ✅ capture entire grid
+  //   updateSel();
+  //   console.log("pointerdown", el.dataset.idx);
+  // });
+
+  gridEl.addEventListener("pointerdown", e => {
+    const el = e.target.closest(".cell");
+    if (!el) return;
+    S.activeColor = nextPillColor();
+    S.dragging = true;
+    activePointer = e.pointerId;
+    S.selPath = [+el.dataset.idx];
+    gridEl.setPointerCapture(activePointer);
     updateSel();
   });
 
-  gridEl.addEventListener('pointermove',e=>{
-    if(!S.dragging||e.pointerId!==activePointer)return;
-    const el=e.target.closest('.cell'); if(!el)return;
-    const id=+el.dataset.idx;
-    const last=S.selPath[S.selPath.length-1];
-    if(id!==last){ S.selPath.push(id); updateSel(); redrawPill(S.selPath); }
+
+  gridEl.addEventListener("pointermove", e => {
+    if (!S.dragging || e.pointerId !== activePointer) return;
+    const el = document.elementFromPoint(e.clientX, e.clientY)?.closest(".cell");
+    if (!el) return;
+    const id = +el.dataset.idx;
+    const last = S.selPath[S.selPath.length - 1];
+    if (id !== last) {
+      S.selPath.push(id);
+      console.log("pointermove", id);
+      updateSel();
+      const letters = lettersOf(S.selPath);
+      liveMsg(letters);
+      redrawPill(S.selPath, S.activeColor);
+    }
   });
 
-  addEventListener('pointerup',()=>{
-    if(!S.dragging)return;
-    S.dragging=false; activePointer=null;
-    const w=lettersOf(S.selPath);
-    const i=WORDS.indexOf(w);
-    if(i>=0&&!S.found.has(i)){
+  gridEl.addEventListener("pointerup", e => {
+    if (e.pointerId !== activePointer) return;
+    gridEl.releasePointerCapture(activePointer);
+    activePointer = null;
+
+    if (!S.dragging) return;
+    S.dragging = false;
+
+    const w = lettersOf(S.selPath);
+    const i = WORDS.indexOf(w);
+    console.log("pointerup", w, i);
+
+    if (i >= 0 && !S.found.has(i)) {
       S.found.add(i);
-      document.querySelectorAll('#wordList span')[i].classList.add('done');
+      document.querySelectorAll("#wordList span")[i].classList.add("done");
       msg(`Found ${w}!`);
       drawFinalPill(S.selPath);
-      if(S.found.size===WORDS.length) victory();
+      if (S.found.size === WORDS.length) victory();
     }
-    S.selPath=[]; updateSel();
+
+    // remove temp lines after completing the gesture
+    const svg = document.getElementById('pills');
+    svg?.querySelectorAll('.temp').forEach(el => el.remove());
+
+    S.selPath = [];
+    updateSel();
   });
 }
 
@@ -148,16 +222,51 @@ function cellRect(id){
   return { x:r.left-host.left+r.width/2, y:r.top-host.top+r.height/2 };
 }
 
-function redrawPill(path){
-  const svg=document.getElementById('pills');
-  svg.innerHTML='';
-  if(path.length<2)return;
-  for(let i=0;i<path.length-1;i++)drawSegment(svg,path[i],path[i+1],'#9ad7ff80');
+// colors rotate between rounds or words
+const PILL_COLORS = ['#4FC3F7', '#81C784', '#FFD54F', '#BA68C8', '#FF8A65'];
+let nextColor = 0;
+
+function redrawPill(path, color = 'rgba(80,170,255,0.7)', temp = true) {
+  const svg = document.getElementById('pills');
+  if (!svg) return;
+
+  // Remove only temporary lines
+  if (temp) svg.querySelectorAll('.temp').forEach(e => e.remove());
+
+  for (let i = 0; i < path.length - 1; i++) {
+    const a = path[i], b = path[i + 1];
+    const A = cellCenter(a), B = cellCenter(b);
+    if (!A || !B) continue;
+
+    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+    line.setAttribute('x1', A.x);
+    line.setAttribute('y1', A.y);
+    line.setAttribute('x2', B.x);
+    line.setAttribute('y2', B.y);
+    line.setAttribute('stroke', color);
+    line.setAttribute('stroke-width', A.w * 0.6);
+    line.setAttribute('stroke-linecap', 'round');
+    line.classList.add(temp ? 'temp' : 'final');
+    svg.appendChild(line);
+  }
 }
 
-function drawFinalPill(path){
-  const svg=document.getElementById('pills');
-  for(let i=0;i<path.length-1;i++)drawSegment(svg,path[i],path[i+1],'#9ad7ff');
+function drawFinalPill(path) {
+  const color = PILL_COLORS[nextColor % PILL_COLORS.length];
+  nextColor++;
+  redrawPill(path, S.activeColor, false);
+}
+
+function cellCenter(id) {
+  const el = document.querySelector(`.cell[data-idx="${id}"]`);
+  if (!el) return null;
+  const r = el.getBoundingClientRect();
+  const host = document.getElementById('grid').getBoundingClientRect();
+  return {
+    x: r.left - host.left + r.width / 2,
+    y: r.top - host.top + r.height / 2,
+    w: r.width, h: r.height
+  };
 }
 
 function drawSegment(svg,a,b,color){
@@ -198,6 +307,14 @@ function msg(t){
   const m=document.getElementById('msg');
   m.textContent=t; m.classList.add('show');
   setTimeout(()=>m.classList.remove('show'),1500);
+}
+
+function liveMsg(text) {
+  const m = document.getElementById('msg');
+  m.style.color = S.activeColor || '#fff';
+  if (!m) return;
+  m.textContent = text;
+  m.classList.add('show');
 }
 
 function victory(){
