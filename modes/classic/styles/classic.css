@@ -54,7 +54,7 @@
 }
 .boardWrap {
 	position: relative;
-	background: rgba(255,255,255,1.08);
+	background: rgba(255,255,255,1);
 	border-radius: 1rem;
 	border-top-left-radius: 0;
 	border-top-right-radius: 0;
@@ -153,26 +153,16 @@
 	padding: 0.5rem;
 	font-weight: 800;
 	opacity: 0;
+  height: 18px;
   text-align: center;
 	transition: opacity 0.2s;
 }
-#msg.show {
-	opacity: 1;
-	animation: popfade 1s ease forwards;
+#msg {
+  opacity: 0;
+  transition: opacity 0.25s ease; 
 }
-@keyframes popfade {
-	0% {
-		transform: scale(0.9);
-		opacity: 0;
-	}
-	20% {
-		transform: scale(1.1);
-		opacity: 1;
-	}
-	100% {
-		transform: scale(1);
-		opacity: 0;
-	}
+#msg.show {
+  opacity: 1;
 }
 #lava,#pills {
 	pointer-events: none !important;

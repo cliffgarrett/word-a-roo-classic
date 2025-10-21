@@ -146,25 +146,18 @@ function hookInput(gridEl) {
 
   let activePointer = null;
 
-  // gridEl.addEventListener("pointerdown", e => {
-  //   const el = e.target.closest(".cell");
-  //   if (!el) return;
-  //   S.dragging = true;
-  //   activePointer = e.pointerId;
-  //   S.selPath = [+el.dataset.idx];
-  //   gridEl.setPointerCapture(activePointer); // ✅ capture entire grid
-  //   updateSel();
-  //   console.log("pointerdown", el.dataset.idx);
-  // });
-
   gridEl.addEventListener("pointerdown", e => {
-    const el = e.target.closest(".cell");
+    const el = e.target.closest('.cell'); 
     if (!el) return;
-    S.activeColor = nextPillColor();
-    S.dragging = true;
+
     activePointer = e.pointerId;
+    gridEl.setPointerCapture(e.pointerId);
+    S.dragging = true;
     S.selPath = [+el.dataset.idx];
-    gridEl.setPointerCapture(activePointer);
+    S.activeColor = nextPillColor(); // new selection color
+
+    const firstLetter = el.textContent.trim();
+    liveMsg(firstLetter); // ✅ start message immediately on first letter
     updateSel();
   });
 
@@ -203,15 +196,18 @@ function hookInput(gridEl) {
       msg(`Found ${w}!`);
       drawFinalPill(S.selPath);
       if (S.found.size === WORDS.length) victory();
+    } else {
+      msg("");
     }
 
+  
+    S.selPath = [];
+    updateSel();
+    
     // remove temp lines after completing the gesture
     const svg = document.getElementById('pills');
     svg?.querySelectorAll('.temp').forEach(el => el.remove());
-
-    S.selPath = [];
-    updateSel();
-  });
+});
 }
 
 /* ---------------- VISUALS ---------------- */
@@ -311,7 +307,7 @@ function msg(t){
 
 function liveMsg(text) {
   const m = document.getElementById('msg');
-  m.style.color = S.activeColor || '#fff';
+  //m.style.color = S.activeColor || '#fff';
   if (!m) return;
   m.textContent = text;
   m.classList.add('show');
