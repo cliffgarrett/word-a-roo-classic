@@ -5,7 +5,35 @@ import { mountStage } from '../../../scripts/main.js';
 const WORDS = ['BIRD','BUG','CLOUD','DRAGON','KITE','EMIT'];
 const BAG = "EEEEEEEEEEEEEEEAAAAAAAIIIIIIIOOOOOONNNNRRRRRSSSSTTTTTDLLLLUGGBBCCMMPPFFHHVVWWYKJXQZ";
 const ROWS = 7, COLS = 6;
+
+const PRAISES = [
+  "Nice!",
+  "Excellent!",
+  "Awesome!",
+  "Great find!",
+  "You rock!",
+  "Well done!",
+  "Fantastic!",
+  "Brilliant!",
+  "Superb!",
+  "Amazing!"
+];
+
+const ENCOURAGEMENTS = [
+  "Not a word...",
+  "Try again!",
+  "Whoops!",
+  "Hmm... no match.",
+  "Keep going!",
+  "Almost!",
+  "Close, but not quite.",
+  "Give it another go!"
+];
+
 let S = { grid:[], placed:[], found:new Set(), dragging:false, selPath:[] };
+S.allowSnake = false; // initially off
+S.round = 1;
+S.puzzlePieces = 0;
 
 /* ---------------- HELPERS ---------------- */
 const idx = (r,c)=>r*COLS+c;
@@ -99,25 +127,25 @@ export function start(){
   window.addEventListener('resize', resizePillsToGrid);
 }
 
-function resizePillsToGrid() {
+function resizePillsToGrid(){
   const grid = document.getElementById('grid');
-  const svg = document.getElementById('pills');
+  const svg  = document.getElementById('pills');
   if (!grid || !svg) return;
+  const r = grid.getBoundingClientRect();
 
-  const rect = grid.getBoundingClientRect();
+  // size
+  svg.style.width  = r.width  + 'px';
+  svg.style.height = r.height + 'px';
+  svg.setAttribute('width',  r.width);
+  svg.setAttribute('height', r.height);
 
-  // Apply exact pixel dimensions
-  svg.style.width = `${rect.width}px`;
-  svg.style.height = `${rect.height}px`;
-
-  // Match grid's position inside boardWrap
-  svg.style.left = `${grid.offsetLeft}px`;
-  svg.style.top = `${grid.offsetTop}px`;
-
-  svg.setAttribute('width', rect.width);
-  svg.setAttribute('height', rect.height);
+  // position inside boardWrap (so it stays glued to the grid)
+  svg.style.left = grid.offsetLeft + 'px';
+  svg.style.top  = grid.offsetTop  + 'px';
 }
-
+window.addEventListener('resize', resizePillsToGrid);
+// call once after you populate #grid:
+requestAnimationFrame(resizePillsToGrid);
 
 /* ---------------- INPUT ---------------- */
 const COLORS = [
@@ -127,14 +155,42 @@ const COLORS = [
   '#ff9fe5', // pink
   '#a29fff', // violet
 ];
+
 let nextColorIndex = 0;
+
 function nextPillColor() {
   const color = COLORS[nextColorIndex];
   nextColorIndex = (nextColorIndex + 1) % COLORS.length;
   return color;
 }
 
-function hookInput(gridEl) {
+function demoSnakePath() {
+  const wordObj = S.placed.find(w => w.text === "DRAGON") || S.placed[0];
+  if (!wordObj) return;
+
+  const path = wordObj.path;
+  const svg = document.getElementById("pills");
+  let step = 0;
+  const color = "#ff9fe5";
+
+  msgCloud("Watch this new move!", nulll);
+
+  function drawNext() {
+    if (step < path.length - 1) {
+      drawPillSegment(path[step], path[step + 1], color);
+      const el = document.querySelector(`.cell[data-idx="${path[step]}"]`);
+      if (el) el.classList.add("sel");
+      step++;
+      setTimeout(drawNext, 200);
+    } else {
+      msgCloud("Now you try snaking paths!", null);
+    }
+  }
+
+  setTimeout(drawNext, 800);
+}
+
+function hookInput(gridEl){
   console.log("hookInput active");
 
   const cellElById = id => gridEl.querySelector(`.cell[data-idx="${id}"]`);
@@ -142,45 +198,77 @@ function hookInput(gridEl) {
     gridEl.querySelectorAll(".cell.sel").forEach(c => c.classList.remove("sel"));
     for (const id of S.selPath) cellElById(id)?.classList.add("sel");
   };
-  
+
+  // ensure colors are initialized
+  if (!S.activeColor) S.activeColor = nextPillColor();
+  if (!S.nextColor)   S.nextColor   = S.activeColor;
 
   let activePointer = null;
+  let dir = null;             // direction vector for straight-only mode, e.g. [dr, dc]
 
-  gridEl.addEventListener("pointerdown", e => {
-    const el = e.target.closest('.cell'); 
-    if (!el) return;
+  // helpers
+  const secondLast = () => S.selPath[S.selPath.length - 2];
+  const last       = () => S.selPath[S.selPath.length - 1];
+  const sameCell   = (a,b) => a === b;
 
-    activePointer = e.pointerId;
-    gridEl.setPointerCapture(e.pointerId);
-    S.dragging = true;
-    S.selPath = [+el.dataset.idx];
-    S.activeColor = nextPillColor(); // new selection color
+  function clearTempPill() {
+    const svg = document.getElementById('pills');
+    svg?.querySelectorAll('.temp').forEach(el => el.remove());
+  }
 
-    const firstLetter = el.textContent.trim();
-    liveMsg(firstLetter); // ✅ start message immediately on first letter
-    updateSel();
-  });
-
-
-  gridEl.addEventListener("pointermove", e => {
-    if (!S.dragging || e.pointerId !== activePointer) return;
-    const el = document.elementFromPoint(e.clientX, e.clientY)?.closest(".cell");
-    if (!el) return;
-    const id = +el.dataset.idx;
-    const last = S.selPath[S.selPath.length - 1];
-    if (id !== last) {
-      S.selPath.push(id);
-      console.log("pointermove", id);
-      updateSel();
-      const letters = lettersOf(S.selPath);
-      liveMsg(letters);
-      redrawPill(S.selPath, S.activeColor);
+  function redrawTempPill() {
+    const svg = document.getElementById('pills');
+    if (!svg) return;
+    clearTempPill();
+    const path = S.selPath;
+    for (let i = 0; i < path.length - 1; i++) {
+      // draw temp segments with active color
+      drawPillSegment(path[i], path[i + 1], S.activeColor, /*isTemp=*/true);
     }
-  });
+  }
 
-  gridEl.addEventListener("pointerup", e => {
-    if (e.pointerId !== activePointer) return;
-    gridEl.releasePointerCapture(activePointer);
+  function acceptMove(nextId){
+    // 1) Backtrack one step?
+    if (S.selPath.length >= 2 && sameCell(nextId, secondLast())) {
+      // pop last and redraw
+      S.selPath.pop();
+      updateSel();
+      liveMsg(lettersOf(S.selPath));
+      redrawTempPill();
+      // If after pop there are only 1 cell, reset dir in straight-only
+      if (!S.allowSnake && S.selPath.length <= 1) dir = null;
+      return;
+    }
+
+    // 2) Already in path somewhere (no revisits)
+    if (S.selPath.includes(nextId)) return;
+
+    // 3) Straight-only enforcement
+    if (!S.allowSnake) {
+      if (S.selPath.length === 1) {
+        // define direction using the first two cells chosen
+        const [r1,c1] = rcOf(S.selPath[0]);
+        const [r2,c2] = rcOf(nextId);
+        dir = [Math.sign(r2 - r1), Math.sign(c2 - c1)];
+      } else if (S.selPath.length >= 2) {
+        const [pr,pc] = rcOf(last());
+        const [nr,nc] = rcOf(nextId);
+        const step = [Math.sign(nr - pr), Math.sign(nc - pc)];
+        // must match the original direction
+        if (!dir || step[0] !== dir[0] || step[1] !== dir[1]) return;
+      }
+    }
+
+    // 4) Accept
+    S.selPath.push(nextId);
+    updateSel();
+    liveMsg(lettersOf(S.selPath));
+    redrawTempPill();
+  }
+
+  function handlePointerUp(pointerId){
+    if (pointerId !== activePointer) return;
+    try { gridEl.releasePointerCapture(activePointer); } catch {}
     activePointer = null;
 
     if (!S.dragging) return;
@@ -188,94 +276,128 @@ function hookInput(gridEl) {
 
     const w = lettersOf(S.selPath);
     const i = WORDS.indexOf(w);
-    console.log("pointerup", w, i);
 
     if (i >= 0 && !S.found.has(i)) {
+      // ✅ Correct
       S.found.add(i);
       document.querySelectorAll("#wordList span")[i].classList.add("done");
-      msg(`Found ${w}!`);
-      drawFinalPill(S.selPath);
+      drawFinalPill(S.selPath, S.activeColor); // keep color
+      msgCloud(null, true);
+      S.nextColor = nextPillColor();           // advance for NEXT selection
       if (S.found.size === WORDS.length) victory();
     } else {
-      msg("");
+      // ❌ Wrong — clear immediately
+      msgCloud(null, false);
+      clearTempPill();
     }
 
-  
+    // Reset selection immediately (for both success & failure)
     S.selPath = [];
+    dir = null;
     updateSel();
-    
-    // remove temp lines after completing the gesture
-    const svg = document.getElementById('pills');
-    svg?.querySelectorAll('.temp').forEach(el => el.remove());
-});
-}
-
-/* ---------------- VISUALS ---------------- */
-function cellRect(id){
-  const el=document.querySelector(`.cell[data-idx="${id}"]`);
-  const r=el.getBoundingClientRect();
-  const host=document.querySelector('.boardWrap').getBoundingClientRect();
-  return { x:r.left-host.left+r.width/2, y:r.top-host.top+r.height/2 };
-}
-
-// colors rotate between rounds or words
-const PILL_COLORS = ['#4FC3F7', '#81C784', '#FFD54F', '#BA68C8', '#FF8A65'];
-let nextColor = 0;
-
-function redrawPill(path, color = 'rgba(80,170,255,0.7)', temp = true) {
-  const svg = document.getElementById('pills');
-  if (!svg) return;
-
-  // Remove only temporary lines
-  if (temp) svg.querySelectorAll('.temp').forEach(e => e.remove());
-
-  for (let i = 0; i < path.length - 1; i++) {
-    const a = path[i], b = path[i + 1];
-    const A = cellCenter(a), B = cellCenter(b);
-    if (!A || !B) continue;
-
-    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
-    line.setAttribute('x1', A.x);
-    line.setAttribute('y1', A.y);
-    line.setAttribute('x2', B.x);
-    line.setAttribute('y2', B.y);
-    line.setAttribute('stroke', color);
-    line.setAttribute('stroke-width', A.w * 0.6);
-    line.setAttribute('stroke-linecap', 'round');
-    line.classList.add(temp ? 'temp' : 'final');
-    svg.appendChild(line);
   }
-}
 
-function drawFinalPill(path) {
-  const color = PILL_COLORS[nextColor % PILL_COLORS.length];
-  nextColor++;
-  redrawPill(path, S.activeColor, false);
-}
+  gridEl.addEventListener('pointerdown', e => {
+    const el = e.target.closest('.cell'); if (!el) return;
+    activePointer = e.pointerId;
+    gridEl.setPointerCapture(e.pointerId);
 
-function cellCenter(id) {
+    S.dragging = true;
+    S.selPath  = [+el.dataset.idx];
+    dir = null;
+
+    // use the queued color for THIS drag
+    S.activeColor = S.nextColor;
+
+    liveMsg(el.textContent.trim());
+    updateSel();
+    redrawTempPill();
+  });
+
+  gridEl.addEventListener('pointermove', e => {
+    if (!S.dragging || e.pointerId !== activePointer) return;
+
+    // find the cell under pointer (works even if you drift off the grid)
+    const el = document.elementFromPoint(e.clientX, e.clientY)?.closest('.cell');
+    if (!el) return;
+
+    const id = +el.dataset.idx;
+    if (sameCell(id, last())) return;
+    acceptMove(id);
+  });
+
+  // Use window-level handlers so pointerup fires even if the pointer ends outside the grid.
+  window.addEventListener('pointerup',   e => handlePointerUp(e.pointerId), { capture: true });
+  window.addEventListener('pointercancel', e => handlePointerUp(e.pointerId), { capture: true });
+}
+/* ---------------- VISUALS ---------------- */
+
+
+function cellRectInGrid(id){
   const el = document.querySelector(`.cell[data-idx="${id}"]`);
   if (!el) return null;
-  const r = el.getBoundingClientRect();
-  const host = document.getElementById('grid').getBoundingClientRect();
+  const grid = document.getElementById('grid');
+  const rEl   = el.getBoundingClientRect();
+  const rGrid = grid.getBoundingClientRect();
   return {
-    x: r.left - host.left + r.width / 2,
-    y: r.top - host.top + r.height / 2,
-    w: r.width, h: r.height
+    cx: rEl.left - rGrid.left + rEl.width/2,
+    cy: rEl.top  - rGrid.top  + rEl.height/2,
+    w: rEl.width, h: rEl.height
   };
 }
 
-function drawSegment(svg,a,b,color){
-  const A=cellRect(a), B=cellRect(b);
-  if(!A||!B)return;
-  const line=document.createElementNS('http://www.w3.org/2000/svg','line');
-  line.setAttribute('x1',A.x); line.setAttribute('y1',A.y);
-  line.setAttribute('x2',B.x); line.setAttribute('y2',B.y);
-  line.setAttribute('stroke',color);
-  line.setAttribute('stroke-width','12');
-  line.setAttribute('stroke-linecap','round');
-  svg.appendChild(line);
+function drawPillSegment(aId, bId, color, isTemp=false){
+  const A = cellRectInGrid(aId), B = cellRectInGrid(bId);
+  if(!A || !B) return;
+  const svg = document.getElementById('pills');
+  const g = document.createElementNS('http://www.w3.org/2000/svg','g');
+  g.classList.add(isTemp ? 'pill-temp' : 'pill-final');
+
+  // thickness tuned to cell size; extra “padding” to look like a rounded capsule
+  const thickness = Math.min(A.w, A.h) * 0.70;
+
+  // BACK stroke = subtle border halo
+  // const back = document.createElementNS('http://www.w3.org/2000/svg','line');
+  // back.setAttribute('x1', A.cx); back.setAttribute('y1', A.cy);
+  // back.setAttribute('x2', B.cx); back.setAttribute('y2', B.cy);
+  // back.setAttribute('stroke', 'rgba(0,0,0,.12)');
+  // back.setAttribute('stroke-width', thickness + 4);
+  // back.setAttribute('stroke-linecap','round');
+
+  // FRONT stroke = actual pill color
+  const front = document.createElementNS('http://www.w3.org/2000/svg','line');
+  front.setAttribute('x1', A.cx); front.setAttribute('y1', A.cy);
+  front.setAttribute('x2', B.cx); front.setAttribute('y2', B.cy);
+  front.setAttribute('stroke', color);
+  front.setAttribute('stroke-width', thickness);
+  front.setAttribute('stroke-linecap','round');
+
+  if (isTemp) front.classList.add('temp');
+  // g.appendChild(back);
+  g.appendChild(front);
+  svg.appendChild(g);
 }
+
+
+
+// function redrawPill(path, color){
+//   const svg = document.getElementById('pills');
+//   // clear only the temporary preview
+//   svg.querySelectorAll('.pill-temp').forEach(n => n.remove());
+//   for (let i=0; i<path.length-1; i++){
+//     drawPillSegment(path[i], path[i+1], color, /*isTemp*/ true);
+//   }
+// }
+
+function drawFinalPill(path, color){
+  const svg = document.getElementById('pills');
+  for (let i=0; i<path.length-1; i++){
+    drawPillSegment(path[i], path[i+1], color, /*isTemp*/ false);
+  }
+  // clean preview after finalizing
+  svg.querySelectorAll('.pill-temp').forEach(n => n.remove());
+}
+
 
 /* ---------------- LAVA BACKGROUND ---------------- */
 function animateLava(){
@@ -299,23 +421,108 @@ function animateLava(){
 }
 
 /* ---------------- UI ---------------- */
-function msg(t){
-  const m=document.getElementById('msg');
-  m.textContent=t; m.classList.add('show');
-  setTimeout(()=>m.classList.remove('show'),1500);
+const PRAISE = ["Nice!", "Great!", "Awesome!", "Well done!", "Sweet!", "Fantastic!"];
+const MISS = ["Not a word...", "Try again!", "Nope!", "Hmm..."];
+
+function rand(arr){ return arr[(Math.random()*arr.length)|0]; }
+
+function msgCloud(text, isPraise = true) {
+  const msgEl = document.getElementById('msg');
+  if (!msgEl) return;
+
+  const phrase = text || (isPraise ? rand(PRAISES) : rand(ENCOURAGEMENTS));
+
+  // remove any prior cloud
+  msgEl.innerHTML = '';
+
+  const cloud = document.createElement('div');
+  cloud.className = 'msg-cloud';
+  cloud.textContent = phrase;
+
+  // color accent optional
+  cloud.style.background = isPraise ? '#fff8dc' : '#eceff1';
+  cloud.style.color      = isPraise ? 'goldenrod' : '#333';
+
+  msgEl.appendChild(cloud);
+
+  // 🔧 Force reflow so the browser commits the hidden state
+  // (any of these works; pick one)
+  // cloud.getBoundingClientRect();
+  // or: void cloud.offsetWidth;
+  window.getComputedStyle(cloud).opacity;
+
+  // now trigger the entering transition
+  cloud.classList.add('show');
+
+  // schedule exit (optional)
+  setTimeout(() => {
+    cloud.classList.remove('show');    // end the transition state
+    cloud.classList.add('fade');       // optional keyframed exit
+    cloud.addEventListener('animationend', () => cloud.remove(), { once: true });
+  }, 1300);
 }
 
-function liveMsg(text) {
+function liveMsg(text, color = "#000") {
   const m = document.getElementById('msg');
-  //m.style.color = S.activeColor || '#fff';
   if (!m) return;
   m.textContent = text;
+  m.style.color = color;
   m.classList.add('show');
 }
 
-function victory(){
-  msg("Level Complete!");
+function victory() {
+  console.log("Victory reached!");
+
+  // Stop background music and play win tone
   SoundManager.stopAll();
-  SoundManager.play('classic',false);
-  setTimeout(()=>{ msg("🎉 You Win!"); }, 1500);
+  SoundManager.play('victory');
+
+  // Award puzzle pieces
+  S.puzzlePieces += 3;
+  const msgColor = S.activeColor || "#9fff9f";
+  msg(`🧩 +3 pieces (${S.puzzlePieces}/9)`, msgColor);
+
+  // Check if puzzle complete (9 pieces)
+  if (S.puzzlePieces >= 9) {
+    msgCloud("Puzzle Complete!", true); // specific message
+    //msg("🎉 Puzzle complete! Unlocking new zoo element!", "#9fff9f");
+    setTimeout(() => nextLocationExpansion(), 1500);
+  } else {
+    msgCloud("Round complete!", null);
+    setTimeout(() => nextRound(), 1800);
+  }
+
+  // Handle snake unlock
+  if (S.round === 2) {
+    S.round++;
+    S.allowSnake = true;
+    setTimeout(() => {
+      msgCloud("🐍 New trick unlocked: Snake paths!", null);
+      demoSnakeSelection(); // Run demo
+    }, 2500);
+  } else {
+    S.round++;
+  }
+}
+
+function demoSnakeSelection() {
+  const example = S.placed.find(w => w.text === "DRAGON") || S.placed[0];
+  if (!example) return;
+
+  const path = example.path;
+  const color = "#ffb347";
+  const svg = document.getElementById("pills");
+  if (!svg) return;
+
+  let step = 0;
+  const interval = setInterval(() => {
+    if (step >= path.length - 1) {
+      clearInterval(interval);
+      drawFinalPill(path, color);
+      msgCloud(null, true);
+      return;
+    }
+    drawPillSegment(path[step], path[step + 1], color);
+    step++;
+  }, 200);
 }

@@ -1,6 +1,7 @@
 :root {
 	--cell: 46px;
 }
+
 #classicBoard {
 	position: relative;
 	min-height: 100vh;
@@ -10,11 +11,13 @@
 	color: #fff;
 	overflow: hidden;
 }
+
 #lava {
 	position: absolute;
 	inset: 0;
 	z-index: 0;
 }
+
 #gameCard {
 	display: flex;
 	flex-direction: column;
@@ -24,75 +27,107 @@
 	opacity: 1;
 	padding: 10px;
 }
+
 #gameCard {
 	position: relative;
 	z-index: 1;
 	border-radius: 1.5rem;
 	overflow: hidden;
 }
+
 #gameCard {
-	background: linear-gradient(160deg,#ff99cc 0%,#cc99ff 25%,#99ccff 50%,#99ffcc 75%,#ff99cc 100%);
+	background: linear-gradient(160deg, #ff99cc 0%, #cc99ff 25%, #99ccff 50%, #99ffcc 75%, #ff99cc 100%);
 	background-size: 300% 300%;
 	animation: drift 40s ease-in-out infinite;
 }
+
 @keyframes drift {
 	0% {
 		background-position: 0 0;
 	}
+
 	25% {
 		background-position: 100% 0%;
 	}
+
 	50% {
 		background-position: 100% 100%;
 	}
+
 	75% {
 		background-position: 0% 100%;
 	}
+
 	100% {
 		background-position: 0 0;
 	}
 }
+
 .boardWrap {
 	position: relative;
-	background: rgba(255,255,255,1);
+	background: rgba(255, 255, 255, 1);
 	border-radius: 1rem;
 	border-top-left-radius: 0;
 	border-top-right-radius: 0;
 	padding: 0.5rem;
 	z-index: 1;
 }
-.boardWrap, #grid {
+
+.boardWrap,
+#grid {
 	position: relative;
 	z-index: 2;
 }
+
 #grid {
 	display: grid;
 	grid-template-columns: repeat(6, 1fr);
 	gap: 8px;
 }
+
 .cell {
 	display: flex;
 	justify-content: center;
 	align-items: center;
 	font-weight: 900;
-	font-size: calc(var(--cell,56px) * 0.36);
+	font-size: calc(var(--cell, 56px) * 0.36);
 	color: #000;
-	width: var(--cell,56px);
-	height: var(--cell,56px);
+	width: var(--cell, 56px);
+	height: var(--cell, 56px);
 	border-radius: 10px;
-	background: rgba(255,255,255,0);
+	background: rgba(255, 255, 255, 0);
 	user-select: none;
 	cursor: pointer;
 	transition: transform 0.1s;
 }
+
 .cell.sel {
 	/* background: #3b82f6; */
-	background: rgba(255,255,255,0);
+	background: rgba(255, 255, 255, 0);
 	color: #fff;
 	/* border-radius: 8px;
-	transform: scale(1.05);
-	transition: background 0.15s, transform 0.1s; */
+  transform: scale(1.05);
+  transition: background 0.15s, transform 0.1s; */
 }
+
+#grid,
+.cell,
+#pills {
+	user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	cursor: pointer;
+}
+
+.cell {
+	user-select: none;
+	-webkit-user-select: none;
+	-ms-user-select: none;
+	cursor: pointer;
+	touch-action: none;
+}
+
+
 #pills {
 	position: absolute;
 	inset: 0;
@@ -100,10 +135,14 @@
 	pointer-events: none !important;
 	/* padding: 9px; */
 }
-.boardWrap, #grid, .cell {
+
+.boardWrap,
+#grid,
+.cell {
 	pointer-events: auto !important;
 	z-index: 5;
 }
+
 .words {
 	display: flex;
 	flex-wrap: wrap;
@@ -111,15 +150,18 @@
 	gap: 14px;
 	z-index: 2;
 }
+
 .words span {
 	font-weight: 700;
 	text-transform: uppercase;
 	letter-spacing: 1px;
 }
+
 .words span.done {
-	color: #9adafe;
+	color: #8d8d8d;
 	text-decoration: line-through;
 }
+
 #wordBar {
 	display: flex;
 	justify-content: center;
@@ -131,8 +173,9 @@
 	border-top-right-radius: 1rem;
 	border-bottom-left-radius: 0;
 	border-bottom-right-radius: 0;
-	box-shadow: 0 1px 0 rgba(0,0,0,.06) inset, 0 6px 16px rgba(0,0,0,.05);
+	box-shadow: 0 1px 0 rgba(0, 0, 0, .06) inset, 0 6px 16px rgba(0, 0, 0, .05);
 }
+
 #wordList {
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
@@ -140,68 +183,282 @@
 	text-align: center;
 	white-space: nowrap;
 }
+
 #wordBar {
 	position: relative;
 	z-index: 2;
 }
+
 #wordList {
 	position: relative;
 	z-index: 3;
 }
+
 #msg {
-	margin: 0.5rem;
-	padding: 0.5rem;
-	font-weight: 800;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	text-align: center;
+	z-index: 10;
+	height: 45px;
+	font-size: 1.5rem;
+	font-weight: 900;
+	letter-spacing: 2px;
+}
+
+#msg {
+	position: relative;
+	display: grid;
+	/* keeps space reserved so no layout jump */
+	place-items: center;
+	min-height: 40px;
+	pointer-events: none;
+	/* don’t block pointer events */
+}
+
+.msg-cloud {
+	--h: 36px;
+	padding: 4px 16px;
+	min-width: 80px;
+	border-radius: var(--h);
+	font: 900 1.1rem/1 system-ui, -apple-system, Segoe UI, Inter, Roboto, sans-serif;
+	text-transform: uppercase;
+	background: #f2f2f2;
+	color: goldenrod;
+	box-shadow: 0 3px 8px rgba(0, 0, 0, .25);
+
+	/* hidden start */
 	opacity: 0;
-  height: 18px;
-  text-align: center;
-	transition: opacity 0.2s;
+	transform: translateY(14px) scale(.92);
+
+	/* transition only what we change */
+	transition:
+		opacity .22s ease-out,
+		transform .28s cubic-bezier(.2, .8, .2, 1);
 }
-#msg {
-  opacity: 0;
-  transition: opacity 0.25s ease; 
+
+.msg-cloud.show {
+	opacity: 1;
+	transform: translateY(0) scale(1);
 }
-#msg.show {
-  opacity: 1;
+
+/* optional exit motion */
+.msg-cloud.fade {
+	animation: msgFloatUp .9s ease forwards;
 }
-#lava,#pills {
+
+@keyframes msgFloatUp {
+	0% {
+		opacity: 1;
+		transform: translateY(0) scale(1);
+	}
+
+	/* 50%  { opacity:0.5; transform: translateY(0) scale(1); } */
+	100% {
+		opacity: 0;
+		transform: translateY(0) scale(1);
+	}
+}
+
+/* @keyframes msgFloatUp {
+  0%   { opacity:1; transform: translateY(0)    scale(1); }
+  70%  { opacity:1; transform: translateY(-8px) scale(1.04); }
+  100% { opacity:0; transform: translateY(-24px) scale(.96); }
+} */
+
+.msg-cloud {
+	--elementH: 36px;
+	font-size: 1.5rem;
+	font-weight: 900;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	padding: 4px 16px;
+	min-width: 80px;
+	border-radius: var(--elementH);
+	font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+	text-transform: uppercase;
+	background: #f2f2f2;
+	color: goldenrod;
+	opacity: 0;
+	transform: translateY(40%) scale(0.8);
+	box-shadow: 0 3px 8px rgba(0, 0, 0, 0.25);
+	position: relative;
+	overflow: visible;
+	transition: opacity 0.25s ease-out, transform 0.4s ease-out;
+}
+
+/* 👇 Added state class that JS should toggle */
+.msg-cloud.show {
+	opacity: 1;
+	transform: translateY(0) scale(1);
+}
+
+/* .msg-cloud::before,
+.msg-cloud::after {
+  content: "";
+  position: absolute;
+  background: inherit;
+  border-radius: 50%;
+  opacity: 0.85;
+} */
+
+.msg-cloud::before {
+	width: 14px;
+	height: 14px;
+	bottom: -5px;
+	left: 16px;
+}
+
+.msg-cloud::after {
+	width: 9px;
+	height: 9px;
+	bottom: -10px;
+	left: 26px;
+}
+
+#lava,
+#pills {
 	pointer-events: none !important;
 }
+
 #grid .cell {
 	pointer-events: auto !important;
 }
+
 #grid {
 	touch-action: none;
 	user-select: none;
 }
-#pills, #lava {
+
+#pills,
+#lava {
 	pointer-events: none !important;
 }
+
 #pills {
 	position: absolute;
-	top: 0;
-	left: 0;
-	/* width: 100%; */
+	inset: 0;
+	width: 100%;
 	height: 100%;
+	z-index: 1;
 	pointer-events: none;
-	z-index: 3;
-	overflow: visible;
 }
+
+#grid {
+	position: relative;
+	z-index: 2;
+}
+
 .boardWrap {
 	position: relative;
 	display: inline-block;
 }
+
 .boardWrap {
-  position: relative;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  /* width: 100%; */
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	/* width: 100%; */
 }
+
 .cell.sel {
-  background: transparent !important;
-  color: #000;
-  transform: none;
-  box-shadow: none;
-  animation: none;
+	background: transparent;
+	outline: 3px solid var(--sel-color, #9adafe);
+	transform: scale(1.08);
+	transition: outline-color 0.2s ease;
 }
+
+.band,
+.pills line {
+	transition: stroke 0.3s ease;
+}
+
+/* --- GRID + CELLS --- */
+#grid {
+	position: relative;
+	z-index: 2;
+}
+
+#grid .cell {
+	width: var(--cell, 56px);
+	height: var(--cell, 56px);
+	display: grid;
+	place-items: center;
+	font-weight: 800;
+	font-size: calc(var(--cell, 56px)*.36);
+	color: #101318;
+	background: transparent;
+	/* no white tile */
+	border: none;
+	/* kill any square outline */
+	border-radius: 14px;
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-tap-highlight-color: transparent;
+	outline: none;
+}
+
+#grid .cell.sel {
+	background: transparent;
+	color: #101318;
+	outline: none;
+	box-shadow: none;
+	/* 👈 remove inset highlight */
+	transform: none;
+}
+
+/* removes UA focus outline on click/tap */
+#grid .cell:focus {
+	outline: none;
+}
+
+#grid .cell {
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-tap-highlight-color: transparent;
+	outline: none;
+}
+
+#grid .cell:focus {
+	outline: none;
+}
+
+#grid .cell {
+	user-select: none;
+	-webkit-user-select: none;
+	-webkit-tap-highlight-color: transparent;
+	outline: none;
+}
+
+#grid .cell.sel {
+	background: transparent;
+	color: #101318;
+	/* keep letters visible during drag */
+	outline: none;
+	box-shadow: none;
+	/* remove square halo */
+	transform: none;
+}
+
+/* --- PILLS LAYER (sits exactly over grid) --- */
+.boardWrap {
+	position: relative;
+}
+
+#pills {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	pointer-events: none;
+	overflow: visible;
+	z-index: 1;
+	/* above letters */
+}
+
+/* optional soft glow for finished pills */
+/* .pill-final { filter: drop-shadow(0 1px 0 rgba(0,0,0,.12)) drop-shadow(0 3px 10px rgba(0,0,0,.12)); }
+.pill-temp  { opacity: .95; } */
