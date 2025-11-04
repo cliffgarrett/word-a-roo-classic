@@ -1,0 +1,22 @@
+{
+  "id": 1,
+  "title": "School",
+  "words": ["APPLE", "PENCIL", "TEACH", "DESK", "CLASS", "BOOK"],
+  "rows": 8,
+  "cols": 8,
+  "fillChars": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  "orientation": ["H","V","D"],
+  "difficulty": "easy",
+  "music": "classic.mp3",
+  "snakeMode": false,
+  "jumble": {
+    "word": "PICNIC",
+    "sourceLetters": ["P", "I", "C", "N", "I", "C"],
+    "transition": {
+      "fade": true,
+      "dimWordList": true,
+      "highlightLetters": true,
+      "fallEffect": true
+    }
+  }
+}

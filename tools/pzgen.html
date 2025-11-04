@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Puzzle JSON Generator v2</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  body{
+    font-family:system-ui,Roboto,sans-serif;
+    background:#fafafa;
+    color:#111;
+    margin:0;
+    padding:1rem;
+  }
+  h1{margin-top:0;}
+  label{display:block;margin:.4rem 0;font-weight:600;}
+  input[type=text],select{
+    width:100%;max-width:420px;
+    padding:.4rem;border:1px solid #ccc;border-radius:6px;
+  }
+  input.word{width:calc(33% - .3rem);}
+  textarea{width:100%;height:220px;margin-top:1rem;font-family:monospace;}
+  .row{display:flex;flex-wrap:wrap;gap:.4rem;}
+  .buttons{margin-top:1rem;display:flex;gap:.6rem;flex-wrap:wrap;}
+  button{
+    background:#1e88e5;color:#fff;border:none;border-radius:6px;
+    padding:.5rem 1rem;cursor:pointer;font-weight:600;
+  }
+  button:hover{background:#1565c0;}
+  .langBlock{border:2px solid #ddd;border-radius:8px;padding:.6rem;margin-top:.6rem;}
+  .langBlock.error{border-color:#ff6b6b;animation:shake .3s ease-in-out;}
+  @keyframes shake{
+    0%,100%{transform:translateX(0);}
+    25%{transform:translateX(-3px);}
+    50%{transform:translateX(3px);}
+    75%{transform:translateX(-3px);}
+  }
+  #msg{margin-top:.5rem;font-weight:700;}
+</style>
+</head>
+<body>
+<h1>Word-a-Roo Puzzle Generator v2</h1>
+
+<label>Level Title <input id="title" placeholder="School"></label>
+
+<label>Difficulty
+  <select id="difficulty">
+    <option>easy</option><option>normal</option><option>hard</option>
+  </select>
+</label>
+
+<label><input type="checkbox" id="snakeMode"> Enable Snake Mode</label>
+
+<h2>Languages</h2>
+<div id="langList"></div>
+<div class="buttons">
+  <button id="btnAddLang">➕ Add Language</button>
+</div>
+
+<div class="buttons">
+  <button id="btnGen">Generate JSON</button>
+  <button id="btnDL">Download File</button>
+</div>
+<div id="msg"></div>
+
+<textarea id="output" readonly></textarea>
+
+<script>
+const langList=document.getElementById('langList');
+const SUPPORTED=[
+  {code:'en',name:'English'},
+  {code:'es',name:'Español'},
+  {code:'fr',name:'Français'},
+  {code:'de',name:'Deutsch'},
+  {code:'pt',name:'Português'},
+  {code:'it',name:'Italiano'}
+];
+
+document.getElementById('btnAddLang').onclick=addLanguage;
+document.getElementById('btnGen').onclick=generate;
+document.getElementById('btnDL').onclick=download;
+
+// --- build default English block ---
+addLanguage('en');
+
+function addLanguage(forceCode){
+  const used=[...langList.querySelectorAll('.langBlock')].map(b=>b.dataset.lang);
+  const langObj=forceCode?SUPPORTED.find(l=>l.code===forceCode):SUPPORTED.find(l=>!used.includes(l.code));
+  if(!langObj){alert('All supported languages added');return;}
+  const b=document.createElement('div');
+  b.className='langBlock';
+  b.dataset.lang=langObj.code;
+  b.innerHTML=`
+    <h3>${langObj.name} (${langObj.code})</h3>
+    <label>Words (max 6)</label>
+    <div class="row wordInputs">${Array.from({length:6}).map(()=>'<input class="word" maxlength="12" placeholder="WORD">').join('')}</div>
+    <label>Unscramble Word <input class="jumbleWord" placeholder="PICNIC"></label>
+  `;
+  langList.appendChild(b);
+}
+
+// --- helpers ---
+function clearErrors(){langList.querySelectorAll('.langBlock').forEach(b=>b.classList.remove('error'));}
+function collectLangs(){
+  const data={};
+  langList.querySelectorAll('.langBlock').forEach(b=>{
+    const lang=b.dataset.lang;
+    const words=[...b.querySelectorAll('.word')].map(i=>i.value.trim().toUpperCase()).filter(Boolean);
+    const jumble=b.querySelector('.jumbleWord').value.trim().toUpperCase();
+    data[lang]={words,jumble,block:b};
+  });
+  return data;
+}
+
+// --- validation ---
+function validate(langs){
+  const errs=[]; clearErrors();
+  let firstErr=null;
+  if(!langs.en){errs.push('English is required.');return errs;}
+  for(const [lang,v] of Object.entries(langs)){
+    const b=v.block;
+    if(!v.words.length){errs.push(`${lang}: must include words.`);b.classList.add('error');if(!firstErr)firstErr=b;}
+    if(!v.jumble){errs.push(`${lang}: missing jumble word.`);b.classList.add('error');if(!firstErr)firstErr=b;}
+    if(v.words.length && v.jumble){
+      const all=v.words.join('').toUpperCase();
+      const missing=v.jumble.split('').filter(ch=>!all.includes(ch));
+      if(missing.length){errs.push(`${lang}: jumble uses letters not found in words (${missing.join(',')}).`);b.classList.add('error');if(!firstErr)firstErr=b;}
+    }
+  }
+  if(firstErr)firstErr.scrollIntoView({behavior:'smooth',block:'center'});
+  return errs;
+}
+
+// --- generator ---
+function generate(){
+  const title=document.getElementById('title').value.trim();
+  if(!title){alert('Please enter a title.');return;}
+  const diff=document.getElementById('difficulty').value;
+  const snake=document.getElementById('snakeMode').checked;
+  const langs=collectLangs();
+  const errs=validate(langs);
+  const msg=document.getElementById('msg');
+  if(errs.length){msg.textContent='⚠️ '+errs.join(' ');msg.style.color='#ff6b6b';return;}
+
+  const en=langs.en;
+  const data={
+    id:Date.now(),
+    title:title,
+    words:en.words,
+    rows:6,cols:6,
+    fillChars:"ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+    orientation:["H","V","D"],
+    difficulty:diff,
+    music:"classic.mp3",
+    snakeMode:snake,
+    jumble:{
+      word:en.jumble,
+      sourceLetters:en.jumble.split(""),
+      transition:{fade:true,dimWordList:true,highlightLetters:true,fallEffect:true}
+    }
+  };
+
+  document.getElementById('output').value=JSON.stringify(data,null,2);
+  msg.textContent='✅ JSON generated successfully.';msg.style.color='#28a745';
+  clearErrors();
+}
+
+// --- download ---
+function download(){
+  const text=document.getElementById('output').value;
+  if(!text){generate();if(!document.getElementById('output').value)return;}
+  const blob=new Blob([document.getElementById('output').value],{type:'application/json'});
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(blob);
+  const name=(document.getElementById('title').value||'level').toLowerCase().replace(/\s+/g,'-');
+  a.download=`lvl-${name}.json`;
+  a.click();URL.revokeObjectURL(a.href);
+}
+</script>
+</body>
+</html>

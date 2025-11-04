@@ -1,0 +1,23 @@
+body{
+  font-family:system-ui,Segoe UI,Roboto,sans-serif;
+  background:#0f1011;color:#e9eef4;margin:1rem;
+}
+h1{color:#7aa7ff;font-size:1.4rem;margin-bottom:.8rem;}
+.section{margin:.8rem 0;}
+.smallgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:.5rem;}
+label{display:block;margin:.25rem 0;font-weight:600;}
+input,select,textarea{
+  font-family:inherit;font-size:1rem;
+  border-radius:8px;border:1px solid #333;
+  padding:.35rem .5rem;background:#1c2027;color:#fff;width:100%;
+}
+.wordInputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:.4rem;}
+button{
+  cursor:pointer;background:#7aa7ff;color:#000;font-weight:700;
+  border:none;border-radius:10px;padding:.45rem .9rem;margin-right:.5rem;
+}
+button:hover{background:#9bb8ff;}
+.langBlock{
+  border:1px solid #333;border-radius:10px;padding:.6rem;margin:.6rem 0;background:#14151a;
+}
+#output{width:100%;margin-top:1rem;background:#14151a;color:#87f59f;border:1px solid #333;}

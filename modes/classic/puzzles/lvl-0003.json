@@ -1,0 +1,22 @@
+{
+  "id": 1,
+  "title": "School",
+  "words": ["APPLE", "PENCIL", "TEACH", "DESK", "STUDENT", "BOOKS"],
+  "rows": 8,
+  "cols": 8,
+  "fillChars": "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
+  "orientation": ["H","V","D"],
+  "difficulty": "easy",
+  "music": "classic.mp3",
+  "snakeMode": false,
+  "jumble": {
+    "word": "CLASSES",
+    "sourceLetters": ["C", "L", "A", "S", "S", "E", "S"],
+    "transition": {
+      "fade": true,
+      "dimWordList": true,
+      "highlightLetters": true,
+      "fallEffect": true
+    }
+  }
+}

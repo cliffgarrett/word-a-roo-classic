@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Word-a-Roo</title>
+
+  <link rel="stylesheet" href="./styles/main.css">
+  <script type="module" src="./scripts/main.js"></script>
+</head>
+<body>
+  <!-- Splash -->
+  <section id="splash">
+    <img src="./assets/img/splash.png" alt="Splash" class="bg">
+    <button id="btnStart">Start</button>
+  </section>
+
+  <!-- Mode Picker -->
+  <section id="modePicker" class="hidden picker">
+    <div class="pickerCard">
+      <h2>Choose a Mode</h2>
+      <p class="sub">Try Word-a-Roo Classic</p>
+      <div class="stack">
+        <button class="mBtn" id="chooseClassic">Classic</button>
+        <button class="ghostBtn" id="cancelPicker">Back</button>
+      </div>
+    </div>
+    <img src="./assets/img/modepicker.png" alt="Mode Badge" class="pickerBadge">
+  </section>
+
+  <!-- Game Stage -->
+  <main id="stage"></main>
+</body>
+</html>

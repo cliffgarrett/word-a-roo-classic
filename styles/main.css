@@ -11,6 +11,8 @@ html, body {
   font-family: system-ui, -apple-system, Segoe UI, Inter, sans-serif;
 }
 
+/* body { padding-bottom: 90px; } */
+
 /* Splash */
 #splash {
   position: fixed;
@@ -132,7 +134,7 @@ html, body {
   color: var(--text);
   background: radial-gradient(circle at 50% 0%, var(--bg2), var(--bg1) 80%);
   overflow: hidden;
-  padding-bottom: 2rem;
+  /* padding-bottom: 2rem; */
 }
 
 /* Subtle animated gradient drift (if used under canvas) */
@@ -158,7 +160,7 @@ html, body {
   justify-content: space-between;
   align-items: center;
   width: clamp(320px, 90%, 720px);
-  margin-top: 1rem;
+  /* margin-top: 1rem; */
   z-index: 5;
 }
 
