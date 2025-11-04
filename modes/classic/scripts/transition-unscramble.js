@@ -130,7 +130,7 @@ export async function transitionToUnscramble() {
   }, 600);
     
 //   setTimeout(() => {
-//     SoundManager.play('growl_open');
+//     SoundManager.play('./modes/classic/assets/audio/growl.mp3');
 //     navigator.vibrate?.(60);
 //     }, 400);
 
@@ -139,7 +139,7 @@ setTimeout(unscrambleTitle, 1100);
   // 📣 Step 3: Banner reveal
   setTimeout(() => {
     banner.style.opacity = "1";
-    SoundManager.play('victory'); // reuse sound
+    //SoundManager.play('victory'); // reuse sound
   }, 1200);
 
   // 🕒 Step 4: Hold, then fade to Roo-A-Range
