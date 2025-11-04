@@ -746,6 +746,7 @@ if (!document.getElementById("btnTestVictory")) {
 function resizePillsToGrid() {
   const grid = document.getElementById('grid');
   const svg = document.getElementById('pills');
+  const bwrap = document.getElementById('pills');
   if (!grid || !svg) return;
   const r = grid.getBoundingClientRect();
 
@@ -754,6 +755,7 @@ function resizePillsToGrid() {
   svg.style.height = r.height + 'px';
   svg.setAttribute('width', r.width);
   svg.setAttribute('height', r.height);
+  bwrap.setAttribute('height', r.height);
 
   // position inside boardWrap (so it stays glued to the grid)
   svg.style.left = grid.offsetLeft + 'px';

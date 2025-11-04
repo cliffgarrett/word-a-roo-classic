@@ -324,6 +324,19 @@
   z-index: 500;
 }
 
+#monsterTeethBottom.chomp {
+  /* tweak until it looks right */
+  transform: translateY(70px);
+  transition: transform 0.5s cubic-bezier(0.45,0,0.25,.5);
+}
+
+#grid.eaten, #pills.eaten {
+  filter: blur(3px) brightness(0.7);
+  opacity: 0;
+  transition: all 0.5s ease;
+}
+
+
 #monsterEyes .eye {
   width: 40px;
   height: 60px;
@@ -367,19 +380,42 @@
     height: 65px;
     pointer-events: none;
     z-index: 90;
-    transition: transform 0.8s cubic-bezier(0.45, 0, 0.25, 1);
+    /* transition: transform 0.8s cubic-bezier(0.45, 0, 0.25, 1); */
     /* border-top: 2px solid black; */
 }
 
 #monsterTeethTop {
     height: 0px;
-    transform: translateY(-100%);
-    transform-origin: top center;
+    /* transform: translateY(-100%);
+    transform-origin: top center; */
 }
 #monsterTeethBottom {
+  position: relative;
   height: 62px;
-  transform: translateY(100%);
-  transform-origin: bottom center;
+  /* transform: translateY(-600px);
+  transform-origin: bottom center; */
+}
+/* #grid, #pills {
+  transition: height 0.6s ease, opacity 0.6s ease;
+  overflow: hidden;
+}
+#grid.eaten, #pills.eaten {
+  height: 0 !important;
+  opacity: 0.5;
+} */
+/* Base position — closed mouth, hidden below the grid */
+#monsterTeethBottom {
+  position: absolute;
+  left: 0;
+  width: 100%;
+  height: auto;
+  bottom: -100px; /* Start off-screen */
+  transform: translateY(0);
+  transition: transform 0.6s cubic-bezier(0.45, 0, 0.25, 1);
+}
+
+#monsterTeethBottom.chomp {
+  transform: translateY(-350px); /* Move upward to meet top teeth */
 }
 
 /* #monsterTeethTop.open,
@@ -387,7 +423,7 @@
   transform: translateY(0);
 } */
 /* Animate to message area height (~70px) when open */
-#monsterTeethTop.open {
+/* #monsterTeethTop.open {
   height: 70px;
   transform: translateY(0);
 }
@@ -395,7 +431,7 @@
 #monsterTeethBottom.open {
   height: 70px;
   transform: translateY(0);
-}
+} */
 
 /* Banner */
 #monsterBanner {

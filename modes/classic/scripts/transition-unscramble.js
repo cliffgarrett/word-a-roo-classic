@@ -108,10 +108,16 @@ export async function transitionToUnscramble() {
   const bottomTeeth = document.getElementById("monsterTeethBottom");
   const eyes = document.getElementById("monsterEyes");
   const banner = document.getElementById("monsterBanner");
+  positionBottomTeeth();
 
     // fade out puzzle
-  grid.classList.add('fade-out');
+  //grid.classList.add('fade-out');
   wordList.classList.add('fade-out');
+grid.classList.add('eaten');
+pills.classList.add('eaten');
+bottomTeeth.classList.add('chomp');
+// SoundManager.play('growl');
+// navigator.vibrate?.([40, 80, 40]);
 
   if (!layer) return;
   layer.style.display = "block";
@@ -125,7 +131,7 @@ export async function transitionToUnscramble() {
   // 🦷 Step 2: Teeth slide open
   setTimeout(() => {
     topTeeth.style.transform = "translateY(0)";
-    bottomTeeth.style.transform = "translateY(0)";
+    bottomTeeth.style.transform = "translateY(-460px)";
     navigator.vibrate?.(80); // <-- Haptic pulse when jaws snap open
   }, 600);
     
@@ -141,6 +147,9 @@ setTimeout(unscrambleTitle, 1100);
     banner.style.opacity = "1";
     //SoundManager.play('victory'); // reuse sound
   }, 1200);
+setTimeout(() => {
+  monsterChomp();
+}, 2400);
 
   // 🕒 Step 4: Hold, then fade to Roo-A-Range
   setTimeout(() => {
@@ -150,9 +159,52 @@ setTimeout(unscrambleTitle, 1100);
     banner.style.opacity = "0";
     setTimeout(() => {
       layer.style.display = "none";
+      const bottomTeeth = document.getElementById('monsterTeethBottom');
+      if (bottomTeeth) {
+        bottomTeeth.classList.remove('chomp');
+        bottomTeeth.style.transform = 'translateY(0)';
+      }
       startUnscrambleRound?.(); // 👈 if implemented
     }, 800);
   }, 3500);
+}
+
+function monsterChomp() {
+  const bottomTeeth = document.getElementById('monsterTeethBottom');
+  const grid = document.getElementById('grid');
+  const pills = document.getElementById('pills');
+  
+  SoundManager.play('growl');
+  navigator.vibrate?.([40, 80, 40]);
+
+  grid.classList.add('eaten');
+  pills.classList.add('eaten');
+  bottomTeeth.classList.add('chomp');
+}
+
+
+function positionBottomTeeth() {
+  const teethBottom = document.getElementById('monsterTeethBottom');
+  const grid = document.getElementById('grid');
+  const wrap = document.querySelector('.boardWrap');
+  if (!teethBottom || !grid || !wrap) return;
+  if (wrap) {
+    wrap.style.height = wrap.offsetHeight + 'px';
+    wrap.style.overflow = 'hidden';
+  }
+
+  // 🧩 Get grid's position relative to its container
+  const wrapRect = wrap.getBoundingClientRect();
+  const gridRect = grid.getBoundingClientRect();
+
+  // Distance from bottom of the wrap to bottom of the grid
+//  const offsetFromWrapBottom = wrapRect.bottom - gridRect.bottom;
+  const offsetFromWrapBottom = - gridRect.height - 100;
+  // ✅ Place bottom teeth flush with bottom of the grid
+  teethBottom.style.position = 'absolute';
+//  teethBottom.style.bottom = `${offsetFromWrapBottom}px`;
+  teethBottom.style.bottom = `${offsetFromWrapBottom}px`;
+  teethBottom.style.transform = 'translateY(0)'; // start OPEN
 }
 
 function unscrambleTitle() {
