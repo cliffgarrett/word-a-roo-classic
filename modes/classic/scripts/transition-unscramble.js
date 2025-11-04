@@ -164,8 +164,8 @@ function unscrambleTitle() {
     current[i] = final[i];
     el.textContent = current.join("");
     i++;
-    if (i >= final.length) clearInterval(interval);
-  }, 300); // change every 100 ms per letter
+    if (i >= final.length+2) clearInterval(interval);
+  }, 100); // change every 100 ms per letter
 }
 function openMonsterMouth() {
   document.getElementById("teethTop")?.classList.add("open");
