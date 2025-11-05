@@ -393,15 +393,11 @@ function buildGridFromJSON(data) {
 function renderHUD() {
   return `
   <div id="hud">
-    <div class="hud-left">
+    <div class="hud-right">
       <button id="btnSettings" class="hud-pill">⚙️</button>
       <button id="btnMusic" class="hud-pill">🔈</button>
-    </div>
-    <div class="hud-center">
       <button id="btnMap" class="hud-pill">🗺️</button>
       <button id="btnTimer" class="hud-pill">⏱️</button>
-      </div>
-    <div class="hud-right">
       <span id="lvl" class="hud-pill">Lv ${S.level}</span>
       <span id="ticketWrap" class="hud-pill">🎟️ <span id="ticketCount">${S.tickets}</span></span>
     </div>
