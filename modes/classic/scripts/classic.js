@@ -154,8 +154,8 @@ function makeGameHTML() {
     <canvas id="lava"></canvas>
     <div id="hud">
       <div class="hud-left">
-        <button id="btnSettings" class="hud-btn">⚙️</button>
-        <button id="btnMusic" class="hud-btn">🔈</button>
+        <button id="btnSettings" class="hud-pill">⚙️</button>
+        <button id="btnMusic" class="hud-pill">🔈</button>
       </div>
       <div class="hud-center">
         <span id="lvl" class="hud-pill">Lv ${S.level ?? 1}</span>
@@ -164,7 +164,7 @@ function makeGameHTML() {
         </span>
       </div>
       <div class="hud-right">
-        <button id="btnHint" class="hud-btn hint-btn" title="Get a hint!">💡</button>
+        <button id="btnHint" class="hud-pill hint-btn" title="Get a hint!">💡</button>
       </div>
     </div>
 
@@ -394,12 +394,12 @@ function renderHUD() {
   return `
   <div id="hud">
     <div class="hud-left">
-      <button id="btnSettings" class="hud-btn">⚙️</button>
-      <button id="btnMusic" class="hud-btn">🔈</button>
+      <button id="btnSettings" class="hud-pill">⚙️</button>
+      <button id="btnMusic" class="hud-pill">🔈</button>
     </div>
     <div class="hud-center">
-      <button id="btnMap" class="hud-btn">🗺️</button>
-      <button id="btnTimer" class="hud-btn">⏱️</button>
+      <button id="btnMap" class="hud-pill">🗺️</button>
+      <button id="btnTimer" class="hud-pill">⏱️</button>
       </div>
     <div class="hud-right">
       <span id="lvl" class="hud-pill">Lv ${S.level}</span>
@@ -691,6 +691,7 @@ export async function start() {
   SoundManager.stopAll();
   SoundManager.load('classic', `./modes/classic/assets/audio/${S.musicFile}`);
   if (S.musicOn) SoundManager.play('classic', true);
+SoundManager.load('growl', './modes/classic/assets/audio/growl.mp3');
 
   // 4️⃣ Build the game UI
   buildGridFromJSON(data);
@@ -940,7 +941,10 @@ function hookInput(gridEl) {
       S.nextColor = nextPillColor();
 
       // if all words found, win round
-      if (S.found.size === S.words.length) victory();
+      if (S.found.size === S.words.length) {
+        victory();
+
+      }
 
     } else {
       // ❌ Incorrect word
@@ -1199,8 +1203,11 @@ async function victory() {
   confetti();
 
   SoundManager.stopAll();
-  SoundManager.load('victory', `./modes/classic/assets/audio/victory.mp3`);
-  SoundManager.play('victory');
+
+  //SoundManager.load('victory', `./modes/classic/assets/audio/victory.mp3`);
+  // SoundManager.load('victory', `./modes/classic/assets/audio/win.mp3`);
+  // SoundManager.play('victory');
+   //SoundManager.play('growl');
   S.tickets += 3;
   msgCloud("🧩 Puzzle Complete!", true);
 

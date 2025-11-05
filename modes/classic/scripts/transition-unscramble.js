@@ -135,10 +135,12 @@ bottomTeeth.classList.add('chomp');
     navigator.vibrate?.(80); // <-- Haptic pulse when jaws snap open
   }, 600);
     
-//   setTimeout(() => {
-//     SoundManager.play('./modes/classic/assets/audio/growl.mp3');
-//     navigator.vibrate?.(60);
-//     }, 400);
+ // setTimeout(() => {
+    //SoundManager.play('./modes/classic/assets/audio/growl.mp3');
+    //SoundManager.load('growl', `./modes/classic/assets/audio/growl.mp3`);
+    //SoundManager.play('growl');
+    //navigator.vibrate?.(60);
+    //}, 10);
 
 setTimeout(unscrambleTitle, 1100);
 
