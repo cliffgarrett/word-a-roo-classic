@@ -205,7 +205,8 @@ function positionBottomTeeth() {
   // ✅ Place bottom teeth flush with bottom of the grid
   teethBottom.style.position = 'absolute';
 //  teethBottom.style.bottom = `${offsetFromWrapBottom}px`;
-  teethBottom.style.bottom = `${offsetFromWrapBottom}px`;
+  //teethBottom.style.bottom = `${offsetFromWrapBottom}px`;
+  teethBottom.style.bottom = `-400px`;
   teethBottom.style.transform = 'translateY(0)'; // start OPEN
 }
 
